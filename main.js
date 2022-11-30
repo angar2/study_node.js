@@ -10,31 +10,15 @@ var app = http.createServer(function(request,response){
 
     if (pathname === '/') {
       if (title === undefined) {
-        var title = 'Welcome'
-        var desc = 'Hello Node'
-        var template = `
-          <!doctype html>
-          <html>
-            <head>
-              <title>WEB1 - ${title}</title>
-              <meta charset="utf-8">
-              </head>
-            <body>
-              <h1><a href="/">WEB</a></h1>
-              <ol>
-                <li><a href="/?id=HTML">HTML</a></li>
-                <li><a href="/?id=CSS">CSS</a></li>
-                <li><a href="/?id=JavaScript">JavaScript</a></li>
-              </ol>
-              <h2>${title}</h2>
-              <p>${desc}</p>
-            </body>
-          </html>
-        `
-      response.writeHead(200);
-      response.end(template);
-      } else {
-        fs.readFile(`data/${title}`, 'utf8', function(err, desc){
+        fs.readdir(`./data`, function(err, filelist) {
+          var title = 'Welcome'
+          var desc = 'Hello Node'
+          var list = ''
+          var i = 0;
+          while (i < filelist.length) {
+            var list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`
+            i = i + 1;
+          }
           var template = `
             <!doctype html>
             <html>
@@ -45,18 +29,46 @@ var app = http.createServer(function(request,response){
               <body>
                 <h1><a href="/">WEB</a></h1>
                 <ol>
-                  <li><a href="/?id=HTML">HTML</a></li>
-                  <li><a href="/?id=CSS">CSS</a></li>
-                  <li><a href="/?id=JavaScript">JavaScript</a></li>
+                  ${list}
                 </ol>
                 <h2>${title}</h2>
                 <p>${desc}</p>
               </body>
             </html>
-          `
-          response.writeHead(200);
-          response.end(template);
-        })
+            `
+            response.writeHead(200);
+            response.end(template);
+        });
+      } else {
+        fs.readdir(`./data`, function(err, filelist) {
+          var list = ''
+          var i = 0;
+          while (i < filelist.length) {
+            var list = list + `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`
+            i = i + 1;
+          }
+          fs.readFile(`data/${title}`, 'utf8', function(err, desc){
+            var template = `
+              <!doctype html>
+              <html>
+                <head>
+                  <title>WEB1 - ${title}</title>
+                  <meta charset="utf-8">
+                  </head>
+                <body>
+                  <h1><a href="/">WEB</a></h1>
+                  <ol>
+                    ${list}
+                  </ol>
+                  <h2>${title}</h2>
+                  <p>${desc}</p>
+                </body>
+              </html>
+            `
+            response.writeHead(200);
+            response.end(template);
+          })
+        });
       }
     } else {
       response.writeHead(404);
