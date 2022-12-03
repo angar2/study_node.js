@@ -15,6 +15,7 @@ function templateHTML(title, list, body) {
         <ol>
           ${list}
         </ol>
+        <a href="/create">Create</a>
         ${body}
       </body>
     </html>
@@ -35,7 +36,7 @@ var app = http.createServer(function(request,response){
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
-    
+    console.log(pathname)
     if (pathname === '/') {
       if (queryData.id === undefined) {
         fs.readdir(`./data`, function(err, filelist) {
@@ -57,6 +58,20 @@ var app = http.createServer(function(request,response){
           })
         });
       }
+    } else if (pathname === '/create') {
+      fs.readdir(`./data`, function(err, filelist) {
+        var title = 'Create'
+        var list = templateList(filelist);
+        var template = templateHTML(title, list, `
+          <form action="http://localhost3000/create" method="post">
+            <p><input type="text" placeholder="title" /></p>
+            <p><textarea type=text placeholder="description"></textarea></p>
+            <p><input type="submit" /></p>
+          </form>
+        `)
+        response.writeHead(200);
+        response.end(template);
+      });
     } else {
       response.writeHead(404);
       response.end('Not found');
