@@ -76,7 +76,8 @@ var app = http.createServer(function(request,response){
             <p><input type="text" name="title" placeholder="title" /></p>
             <p><textarea type=text name="description" placeholder="description"></textarea></p>
             <p><input type="submit" /></p>
-          </form>`
+          </form>`,
+          `<h2>${title}</h2>`
         );
         response.writeHead(200);
         response.end(HTML);
