@@ -2,7 +2,8 @@ var http = require('http');
 var fs = require('fs'); // file system
 var url = require('url');
 var qs = require('querystring');
-var template = require('./lib/template.js')
+var path = require('path');
+var template = require('./lib/template.js');
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
@@ -20,7 +21,8 @@ var app = http.createServer(function(request,response){
         });
       } else {
         fs.readdir(`./data`, function(err, filelist) {
-          fs.readFile(`data/${queryData.id}`, 'utf8', function(err, desc){
+          var filteredId = path.parse(queryData.id).base;
+          fs.readFile(`data/${filteredId}`, 'utf8', function(err, desc){
             var title = queryData.id;
             var list = template.list(filelist);
             var HTML = template.HTML(title, list,
@@ -68,7 +70,8 @@ var app = http.createServer(function(request,response){
       });
     } else if(pathname === '/update') {
       fs.readdir(`./data`, function(err, filelist) {
-        fs.readFile(`data/${queryData.id}`, 'utf8', function(err, desc){
+        var filteredId = path.parse(queryData.id).base;
+        fs.readFile(`data/${filteredId}`, 'utf8', function(err, desc){
           var title = queryData.id;
           var list = template.list(filelist);
           var HTML = template.HTML(title, list,
