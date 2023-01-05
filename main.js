@@ -5,6 +5,15 @@ var qs = require('querystring');
 var path = require('path');
 var sanitizeHTML = require('sanitize-html');
 var template = require('./lib/template.js');
+var mysql      = require('mysql');
+var db = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'nodejs',
+  password : '111111',
+  database : 'classMySQL'
+});
+ 
+db.connect();
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
@@ -12,34 +21,41 @@ var app = http.createServer(function(request,response){
     var pathname = url.parse(_url, true).pathname;
     if(pathname === '/') {
       if(queryData.id === undefined) {
-        fs.readdir(`./data`, function(err, filelist) {
+        db.query(`SELECT * FROM topic`, function(error, topics){
+          if(error){
+            throw error;
+          };
           var title = 'Welcome';
           var desc = 'Hello Node';
-          var list = template.list(filelist);
+          var list = template.list(topics);
           var HTML = template.HTML(title, list, `<h2>${title}</h2><p>${desc}</p>`, `<a href="/create">Create</a>`);
           response.writeHead(200);
           response.end(HTML);
         });
       } else {
-        fs.readdir(`./data`, function(err, filelist) {
-          var filteredId = path.parse(queryData.id).base;
-          fs.readFile(`data/${filteredId}`, 'utf8', function(err, desc){
-            var title = queryData.id;
-            var sanitizedTitle = sanitizeHTML(title);
-            var sanitizedDesc = sanitizeHTML(desc);
-            var list = template.list(filelist);
-            var HTML = template.HTML(sanitizedTitle, list,
-              `<h2>${sanitizedTitle}</h2><p>${sanitizedDesc}</p>`,
+        db.query(`SELECT * FROM topic`, function(error, topics){
+          if(error){
+            throw error;
+          };
+          db.query(`SELECT * FROM topic WHERE id=?`,[queryData.id], function(error2, topic){
+            if(error2){
+              throw error2;
+            };
+            var title = topic[0].title;
+            var desc = topic[0].description;
+            var list = template.list(topics);
+            var HTML = template.HTML(title, list,
+              `<h2>${title}</h2><p>${desc}</p>`,
               `<a href="/create">Create</a>
-                <a href="/update?id=${sanitizedTitle}">Update</a>
-                <form action="delete_process" method="post">
-                  <input type="hidden" name="id" value="${sanitizedTitle}" />
-                  <input type="submit" value="Delete" />
-                </form>`
+              <a href="/update?id=${queryData.id}">Update</a>
+              <form action="delete_process" method="post">
+                <input type="hidden" name="id" value="${queryData.id}" />
+                <input type="submit" value="Delete" />
+              </form>`
             );
             response.writeHead(200);
             response.end(HTML);
-          })
+          });
         });
       }
     } else if(pathname === '/create') {
