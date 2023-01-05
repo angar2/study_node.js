@@ -138,7 +138,7 @@ var app = http.createServer(function(request,response){
             };
             response.writeHead(302, {location: `/?id=${post.id}`});
             response.end("Success");
-          });
+        });
       });
     } else if(pathname === '/delete_process') {
       var body = '';
@@ -147,10 +147,16 @@ var app = http.createServer(function(request,response){
       });
       request.on('end', function() {
         var post = qs.parse(body);
-        var id = post.id;
-        fs.unlink(`data/${id}`, function(err) {
-          response.writeHead(302, {location: `/`});
-          response.end("Success");
+        db.query(
+          `DELETE FROM topic
+            WHERE id=?`,
+          [post.id],
+          function(error, results){
+            if(error){
+              throw error;
+            };
+            response.writeHead(302, {location: `/`});
+            response.end("Success");
         });
       });
     } else {
