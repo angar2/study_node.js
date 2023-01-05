@@ -117,21 +117,28 @@ var app = http.createServer(function(request,response){
           if(error2){
             throw error2;
           };
-          var title = topic[0].title;
-          var desc = topic[0].description;
-          var list = template.list(topics);
-          var HTML = template.HTML(title, list,
-            `<form action="/update_process" method="post">
-              <input type="hidden" name="id" value="${topic[0].id}" />
-              <p><input type="text" name="title" placeholder="title" value="${title}"/></p>
-              <p><textarea type=text name="description" placeholder="description">${desc}</textarea></p>
-              <p><input type="submit" /></p>
-            </form>`, 
-            `<a href="/create">Create</a> <a href="/update?id=${topic[0].id}">Update</a>`
-          );
-          response.writeHead(200);
-          response.end(HTML);
-        })
+          db.query(`SELECT * FROM author`, function(error3, authors){
+            if(error3){
+              throw error3;
+            };
+            var title = topic[0].title;
+            var desc = topic[0].description;
+            var list = template.list(topics);
+            var authorList = template.authorList(authors, topic[0].author_id);
+            var HTML = template.HTML(title, list,
+              `<form action="/update_process" method="post">
+                <input type="hidden" name="id" value="${topic[0].id}" />
+                <p><select name="author">${authorList}</select></p>
+                <p><input type="text" name="title" placeholder="title" value="${title}"/></p>
+                <p><textarea type=text name="description" placeholder="description">${desc}</textarea></p>
+                <p><input type="submit" /></p>
+              </form>`, 
+              `<a href="/create">Create</a> <a href="/update?id=${topic[0].id}">Update</a>`
+            );
+            response.writeHead(200);
+            response.end(HTML);
+          });
+        });
       });
     } else if(pathname === '/update_process') {
       var body = '';
@@ -142,9 +149,9 @@ var app = http.createServer(function(request,response){
         var post = qs.parse(body)
         db.query(
           `UPDATE topic SET
-            title=?, description=?
+            title=?, description=?, author_id=?
             WHERE id=?`,
-          [post.title, post.description, post.id],
+          [post.title, post.description, post.author, post.id],
           function(error, results){
             if(error){
               throw error;
