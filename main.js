@@ -20,7 +20,9 @@ var app = http.createServer(function(request,response){
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
     if(pathname === '/') {
+      // 데이터 불러오기
       if(queryData.id === undefined) {
+        // 모든 데이터 불러오기
         db.query(`SELECT * FROM topic`, function(error, topics){
           if(error){
             throw error;
@@ -33,6 +35,7 @@ var app = http.createServer(function(request,response){
           response.end(HTML);
         });
       } else {
+        // 특정 데이터 불러오기
         db.query(`SELECT * FROM topic`, function(error, topics){
           if(error){
             throw error;
@@ -59,6 +62,7 @@ var app = http.createServer(function(request,response){
         });
       }
     } else if(pathname === '/create') {
+      // 데이터 생성
       db.query(`SELECT * FROM topic`, function(error, topics){
         if(error){
           throw error;
@@ -96,6 +100,7 @@ var app = http.createServer(function(request,response){
         });
       });
     } else if(pathname === '/update') {
+      // 데이터 수정
       db.query(`SELECT * FROM topic`, function(error, topics){
         if(error){
           throw error;
@@ -141,6 +146,7 @@ var app = http.createServer(function(request,response){
         });
       });
     } else if(pathname === '/delete_process') {
+      // 데이터 삭제
       var body = '';
       request.on('data', function(data) {
         body = body + data;
