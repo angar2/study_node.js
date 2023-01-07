@@ -1,19 +1,8 @@
 var http = require('http');
-var fs = require('fs'); // file system
 var url = require('url');
 var qs = require('querystring');
-var path = require('path');
-var sanitizeHTML = require('sanitize-html');
 var template = require('./lib/template.js');
-var mysql      = require('mysql');
-var db = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'nodejs',
-  password : '111111',
-  database : 'classMySQL'
-});
- 
-db.connect();
+var db = require('./lib/db.js');
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
