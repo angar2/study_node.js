@@ -33,6 +33,9 @@ var app = http.createServer(function(request,response){
     } else if(pathname === '/author') {
       // 저자 관리 페이지
       author.home(request, response);
+    } else if(pathname === '/author/create_process') {
+      // 저자 생성
+      author.create_process(request, response);
     } else {
       response.writeHead(404);
       response.end('Not found');
