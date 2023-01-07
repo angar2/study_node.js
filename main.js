@@ -3,172 +3,35 @@ var url = require('url');
 var qs = require('querystring');
 var template = require('./lib/template.js');
 var db = require('./lib/db.js');
+var topic = require('./lib/topic.js');
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
     if(pathname === '/') {
-      // 데이터 불러오기
       if(queryData.id === undefined) {
-        // 모든 데이터 불러오기
-        db.query(`SELECT * FROM topic`, function(error, topics){
-          if(error){
-            throw error;
-          };
-          var title = 'Welcome';
-          var desc = 'Hello Node';
-          var list = template.list(topics);
-          var HTML = template.HTML(title, list, `<h2>${title}</h2><p>${desc}</p>`, `<a href="/create">Create</a>`);
-          response.writeHead(200);
-          response.end(HTML);
-        });
+        // 홈 페이지
+        topic.home(request, response);
       } else {
-        // 특정 데이터 불러오기
-        db.query(`SELECT * FROM topic`, function(error, topics){
-          if(error){
-            throw error;
-          };
-          db.query(`SELECT * FROM topic LEFT JOIN author ON topic.author_id = author.id WHERE topic.id=?`,[queryData.id], function(error2, topic){
-            if(error2){
-              throw error2;
-            };
-            var title = topic[0].title;
-            var desc = topic[0].description;
-            var author = topic[0].name
-            var list = template.list(topics);
-            var HTML = template.HTML(title, list,
-              `<h2>${title}</h2><p>by ${author}</p><p>${desc}</p>`,
-              `<a href="/create">Create</a>
-              <a href="/update?id=${queryData.id}">Update</a>
-              <form action="delete_process" method="post">
-                <input type="hidden" name="id" value="${queryData.id}" />
-                <input type="submit" value="Delete" />
-              </form>`
-            );
-            response.writeHead(200);
-            response.end(HTML);
-          });
-        });
+        // 상세 페이지
+        topic.detail(request, response);
       }
     } else if(pathname === '/create') {
-      // 데이터 생성
-      db.query(`SELECT * FROM topic`, function(error, topics){
-        if(error){
-          throw error;
-        };
-        db.query(`SELECT * FROM author`, function(error2, authors){
-          if(error2){
-            throw error2;
-          };
-          var title = 'Create';
-          var list = template.list(topics);
-          var authorList = template.authorList(authors);
-          var HTML = template.HTML(title, list,
-            `<form action="/create_process" method="post">
-              <p><select name="author">${authorList}</select></p>
-              <p><input type="text" name="title" placeholder="title" /></p>
-              <p><textarea type=text name="description" placeholder="description"></textarea></p>
-              <p><input type="submit" /></p>
-            </form>`,
-            `<h2>${title}</h2>`
-          );
-          response.writeHead(200);
-          response.end(HTML);
-        });
-      });
+      // 생성 페이지
+      topic.create(request, response);
     } else if(pathname === '/create_process') {
-      var body = '';
-      request.on('data', function(data) {
-        body = body + data;
-      });
-      request.on('end', function() {
-        var post = qs.parse(body);
-        db.query(
-          `INSERT INTO topic(title, description, created, author_id) 
-            VALUES(?, ?, NOW(), ?)`,
-          [post.title, post.description, post.author],
-          function(error, results){
-            if(error){
-              throw error;
-            };
-            response.writeHead(302, {location: `/?id=${results.insertId}`});
-            response.end('Success');
-        });
-      });
+      // 게시물 생성
+      topic.create_process(request, response);
     } else if(pathname === '/update') {
-      // 데이터 수정
-      db.query(`SELECT * FROM topic`, function(error, topics){
-        if(error){
-          throw error;
-        };
-        db.query(`SELECT * FROM topic WHERE id=?`,[queryData.id], function(error2, topic){
-          if(error2){
-            throw error2;
-          };
-          db.query(`SELECT * FROM author`, function(error3, authors){
-            if(error3){
-              throw error3;
-            };
-            var title = topic[0].title;
-            var desc = topic[0].description;
-            var list = template.list(topics);
-            var authorList = template.authorList(authors, topic[0].author_id);
-            var HTML = template.HTML(title, list,
-              `<form action="/update_process" method="post">
-                <input type="hidden" name="id" value="${topic[0].id}" />
-                <p><select name="author">${authorList}</select></p>
-                <p><input type="text" name="title" placeholder="title" value="${title}"/></p>
-                <p><textarea type=text name="description" placeholder="description">${desc}</textarea></p>
-                <p><input type="submit" /></p>
-              </form>`, 
-              `<a href="/create">Create</a> <a href="/update?id=${topic[0].id}">Update</a>`
-            );
-            response.writeHead(200);
-            response.end(HTML);
-          });
-        });
-      });
+      // 수정 페이지
+      topic.update(request, response);
     } else if(pathname === '/update_process') {
-      var body = '';
-      request.on('data', function(data) {
-        body = body + data;
-      });
-      request.on('end', function() {
-        var post = qs.parse(body)
-        db.query(
-          `UPDATE topic SET
-            title=?, description=?, author_id=?
-            WHERE id=?`,
-          [post.title, post.description, post.author, post.id],
-          function(error, results){
-            if(error){
-              throw error;
-            };
-            response.writeHead(302, {location: `/?id=${post.id}`});
-            response.end("Success");
-        });
-      });
+      // 게시물 수정
+      topic.update_process(request, response);
     } else if(pathname === '/delete_process') {
-      // 데이터 삭제
-      var body = '';
-      request.on('data', function(data) {
-        body = body + data;
-      });
-      request.on('end', function() {
-        var post = qs.parse(body);
-        db.query(
-          `DELETE FROM topic
-            WHERE id=?`,
-          [post.id],
-          function(error, results){
-            if(error){
-              throw error;
-            };
-            response.writeHead(302, {location: `/`});
-            response.end("Success");
-        });
-      });
+      // 게시물 삭제
+      topic.delete_process(request, response);
     } else {
       response.writeHead(404);
       response.end('Not found');
