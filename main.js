@@ -1,6 +1,7 @@
 var http = require('http');
 var url = require('url');
 var topic = require('./lib/topic.js');
+var author = require('./lib/author.js');
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
@@ -29,6 +30,9 @@ var app = http.createServer(function(request,response){
     } else if(pathname === '/delete_process') {
       // 게시물 삭제
       topic.delete_process(request, response);
+    } else if(pathname === '/author') {
+      // 저자 관리 페이지
+      author.home(request, response);
     } else {
       response.writeHead(404);
       response.end('Not found');
